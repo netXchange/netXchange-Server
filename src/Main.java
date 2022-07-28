@@ -8,6 +8,12 @@ import java.util.UUID;
 public class Main {
     public static Hashtable<UUID,ConnectionHandler> connectionHandlers = new Hashtable<>();
     public static ArrayList<String> in = new ArrayList<>();
+
+    public static void debug(String message){
+        synchronized (Main.in){
+            Main.in.add(message);
+        }
+    }
     public static void main(String[] args) {
         try{
             ServerSocket server = new ServerSocket(31415);
