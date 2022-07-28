@@ -4,49 +4,49 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class ConnectionHandler extends Thread{
-
-    ArrayList<String> in;
-    Socket socket;
-    BufferedReader input;
-    PrintStream output;
-    UUID id;
-    public ConnectionHandler(Socket s, BufferedReader reader, PrintStream writer, UUID id){
+    private Socket socket;
+    private BufferedReader input;
+    private PrintStream output;
+    public UUID uuid;
+    public ConnectionHandler(Socket s, BufferedReader reader, PrintStream writer, UUID uuid){
         this.socket = s;
         this.input = reader;
         this.output = writer;
-        this.id = id;
-        this.in = new ArrayList<>();
+        this.uuid = uuid;
+    }
+
+    public boolean send(String message){
+        try {
+            synchronized (output) {
+                output.println(message);
+            }
+            return true;
+        } catch (Exception e){
+            return false;
+        }
     }
 
     public void run(){
-        Thread t = new Thread(){
-            public void run(){
-                for(int i = 0; i < in.size(); i++){
-                    output.println(in.get(i));
-                    System.out.println(in.get(i));
-                }
-                in.clear();
-            }
-        };
-        t.start();
         try {
             String line = input.readLine();
             while(true){
                 if(line != null && !line.equals("")){
                     String[] data = line.split(",");
-                    if (data.length < 3){
-                    } else if(data[1].equals("")){
+                    if (data.length < 2){
+                        synchronized (Main.in){
+                            Main.in.add(data[0]);
+                        }
+                    } else if(data[0].equals("")){
                         synchronized (Main.in){
                             Main.in.add(data[1]);
                         }
-                    }else if(data.length >= 3){
-                        String to = data[1];
-                        String message = data[2];
+                    }else if(data.length >= 2){
+                        String to = data[0];
+                        String message = data[1];
                         synchronized (Main.connectionHandlers) {
                             ConnectionHandler endpoint = Main.connectionHandlers.get(UUID.fromString(to));
-                            synchronized (endpoint.in){
-                                endpoint.in.add(message);
-                            }
+                            Main.debug("Endpoint found and synced, sending: \""+message+"\" to "+data[0]);
+                            endpoint.send(message);
                         }
                     }
                 }

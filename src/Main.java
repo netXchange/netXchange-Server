@@ -8,7 +8,24 @@ import java.util.UUID;
 public class Main {
     public static Hashtable<UUID,ConnectionHandler> connectionHandlers = new Hashtable<>();
     public static ArrayList<String> in = new ArrayList<>();
+
+    public static boolean DEBUG = false;
+
+    public static void debug(String message){
+        if(DEBUG){
+            synchronized (Main.in){
+                Main.in.add("[DEBUG]"+message);
+            }
+        }
+    }
     public static void main(String[] args) {
+
+        for(int i = 0; i < args.length; i++){
+            if(args[i].equals("debug")){
+                DEBUG = true;
+            }
+        }
+
         try{
             ServerSocket server = new ServerSocket(31415);
             Thread t = new Thread(){
@@ -37,6 +54,7 @@ public class Main {
             System.out.println("Port Bound");
             System.exit(1);
         }
+        System.out.println("Server has started");
         long start = System.currentTimeMillis();
         while(true){
             if(System.currentTimeMillis() - start >= 100) {
